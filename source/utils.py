@@ -6,15 +6,14 @@ import pandas as pd
 import numpy as np
 
 
-def load_dataset(foldername, train_filename):
+def load_dataset(path):
     """
     Load data from the file
 
-    :param foldername: string, folder name
-    :param train_filename: string, train data name
+    :param: path: path to the data
     :return: pd dataframes, train & test data
     """
-    dataframe = pd.read_hdf(foldername + train_filename)
+    dataframe = pd.read_hdf(path)
 
     # Make it multiindex
     dataframe['event'] = dataframe.index
@@ -206,8 +205,8 @@ def reduce_dimensions(df, dimensions=60, method='PCA'):
     return df
 
 
-# TODO: WEll, do it
-def filter_samples(df, normal_samples, damaged_samples, assembly_samples, missing_samples):
+def filter_samples(df, normal_samples, damaged_samples, assembly_samples, missing_samples, damaged_thread_samples,
+                   loosening_samples):
     """
     Take the requested percentage of each data type
 
@@ -216,6 +215,8 @@ def filter_samples(df, normal_samples, damaged_samples, assembly_samples, missin
     :param damaged_samples: float, percentage of damaged samples to take
     :param assembly_samples: float, percentage of assembly samples to take
     :param missing_samples: float, percentage of missing samples to take
+    :param damaged_thread_samples: float, percentage of damaged thread hole samples to take
+    :param loosening_samples: float, percentage of loosening samples to take
     :return: df, the filtered data
     """
     # Count the sample types
@@ -224,8 +225,32 @@ def filter_samples(df, normal_samples, damaged_samples, assembly_samples, missin
     labels_count_dict = {A: B for A, B in zip(unique, counts)}
     print(labels_count_dict)
 
+    # Take only the amount of samples that's needed to fill the requirement
+    sampled_list = []
+    for label in labels_count_dict:
+        subindex = list(np.unique(df.loc[df['label'] == label].index.get_level_values(0)))
 
-    return df
+        if label == 0:
+            to_take = normal_samples * labels_count_dict[0]
+        elif label == 1:
+            to_take = damaged_samples * labels_count_dict[1]
+        elif label == 2:
+            to_take = assembly_samples * labels_count_dict[2]
+        elif label == 3:
+            to_take = missing_samples * labels_count_dict[3]
+        elif label == 4:
+            to_take = damaged_thread_samples * labels_count_dict[4]
+        elif label == 5:
+            to_take = loosening_samples * labels_count_dict[5]
+
+        sample_ids = np.random.choice(subindex, int(to_take), replace=False)
+        sampled_df = df[df.index.get_level_values(0).isin(sample_ids)]
+        sampled_list.append(sampled_df)
+
+    taken_data = pd.concat(sampled_list, ignore_index=False).sort_values(['sample_nr', 'event'])
+    # TODO: Recalculate the index after sampling
+
+    return taken_data
 
 
 # TODO: Sliding window
