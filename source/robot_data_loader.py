@@ -1,32 +1,38 @@
 import sys
+import requests
 import numpy as np
 
-from tensorflow.keras.utils import to_categorical
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder
 
-from source.utils import load_dataset, reduce_dimensions, subsample, pad_df, pd_to_np
+from source.utils import load_dataset, reduce_dimensions, subsample, pad_df, pd_to_np, filter_samples, shuffle_dataframe, relabel, drop_columns
 
 sys.path.append("../")
 
 
-def download_dataset(foldername):
+def download_dataset(foldername, url='https://1drv.ms/u/s!AnZHRsLIVJOxlYU_8YgZlFK0MgXzjA?e=8OZ6bS'):
     """
     Download the dataset.
 
-    :param foldername: folder path,
-        folder to which the data will be downloaded to
+    :param url: string, the url from which the data is downloaded
+    :param foldername: folder path, folder to which the data will be downloaded to
     :return:
     """
-    pass
+    r = requests.get(url, allow_redirects=True)
+    open(foldername + 'robot_dataset.h5').write(r.content)
 
 
 def get_dataset_numpy(foldername, filename, onehot_labels=True, sliding_window=False, window_size=200,
-                      reduce_dimensionality=True, reduce_method='PCA', n_dimensions=60, subsample_data=True,
-                      subsample_freq=2, pad_data=True, train_size=0.7, random_state=42, normal_samples=1,
-                      damaged_samples=1, assembly_samples=1, missing_samples=1):
+                      reduce_dimensionality=False, reduce_method='PCA', n_dimensions=60, subsample_data=True,
+                      subsample_freq=5, pad_data=True, train_size=0.7, random_state=42, normal_samples=1,
+                      damaged_samples=1, assembly_samples=1, missing_samples=1, drop_loosen=True,
+                      drop_extra_columns=True, label_full=True):
     """
     Create a numpy dataset from input dataframe
 
+    :param label_full: bool, both loosening and tightening are part of one label
+    :param drop_extra_columns: bool, drop the extra columns as outlined in the paper
+    :param drop_loosen: bool, drop the loosening columns
     :param missing_samples: float, percentage of missing samples to take
     :param assembly_samples: float, percentage of extra assembly samples to take
     :param damaged_samples: float, percentage of damaged samples to take
@@ -49,16 +55,29 @@ def get_dataset_numpy(foldername, filename, onehot_labels=True, sliding_window=F
     data = load_dataset(foldername=foldername,
                         train_filename=filename)
 
+    print(data.shape)
+    print(data)
+    if label_full:
+        drop_loosen = False
+        data = relabel(data)
+        print(data.shape)
+        print(data)
+
+    data = drop_columns(data, drop_extra_columns=drop_extra_columns, drop_loosen=drop_loosen)
+    print(data.shape)
+    print(data)
+
+    if normal_samples < 1 or damaged_samples < 1 or assembly_samples < 1 or missing_samples < 1:
+        data = shuffle_dataframe(data)
+        data = filter_samples(data, normal_samples, damaged_samples, assembly_samples, missing_samples)
+
     if reduce_dimensionality:
-        # Reduce dimensionality
         data = reduce_dimensions(data, method=reduce_method, dimensions=n_dimensions)
 
-    if not sliding_window:
-        # Subsample the data
-        if subsample_data:
-            data = subsample(data, subsample_freq)
+    if subsample_data:
+        data = subsample(data, subsample_freq)
 
-        # Pad the data
+    if not sliding_window:
         if pad_data:
             data = pad_df(data)
     else:
@@ -74,7 +93,13 @@ def get_dataset_numpy(foldername, filename, onehot_labels=True, sliding_window=F
                                                         stratify=labels)
 
     if onehot_labels:
-        train_y = to_categorical(train_y, num_classes=len(np.unique(train_y)))
-        test_y = to_categorical(test_y, num_classes=len(np.unique(test_y)))
+        encoder = OneHotEncoder()
+        train_y = encoder.fit_transform(X=train_y.reshape(-1, 1)).toarray()
+        test_y = encoder.fit_transform(X=test_y.reshape(-1, 1)).toarray()
 
     return train_x, train_y, test_x, test_y
+
+
+if __name__ == '__main__':
+    data_path = 'C:/Users/au614889/PycharmProjects/robot_dataset/created_dataset/'
+    train_x, train_y, test_x, test_y = get_dataset_numpy(data_path, 'robot_data.h5')

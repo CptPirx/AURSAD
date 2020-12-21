@@ -6,20 +6,13 @@ import pandas as pd
 import numpy as np
 
 
-def load_dataset(foldername, train_filename, shuffle=False, drop_loosen=True):
+def load_dataset(foldername, train_filename):
     """
     Load data from the file
 
-    :param drop_loosen: bool,
-        drop the loosening parts of the screw motion
-    :param shuffle: bool,
-        whether to shuffle the data
-    :param foldername: string,
-        folder name
-    :param train_filename: string,
-        train data name
-    :return: pd dataframes,
-        train & test data
+    :param foldername: string, folder name
+    :param train_filename: string, train data name
+    :return: pd dataframes, train & test data
     """
     dataframe = pd.read_hdf(foldername + train_filename)
 
@@ -29,22 +22,82 @@ def load_dataset(foldername, train_filename, shuffle=False, drop_loosen=True):
     dataframe = dataframe.reset_index('event', drop=True)
     dataframe = dataframe.set_index(dataframe.groupby(level=0).cumcount().rename('event'), append=True)
 
-    if drop_loosen:
-        dropped_df = dataframe.loc[dataframe['label'].isin([0, 1, 2, 3])]
-        dataframe = dropped_df
+    return dataframe
 
-    # Shuffle the data
-    if shuffle:
-        new_order = list(range(dataframe.index.get_level_values(0).max()))
-        new_order = [x+1 for x in new_order]
-        random.shuffle(new_order)
-        newindex = sorted(dataframe.index, key=lambda x: new_order.index(x[0]))
-        dataframe = dataframe.reindex(newindex)
+
+def drop_columns(df, drop_extra_columns=True, drop_loosen=True):
+    """
+
+    :param df:
+    :param drop_extra_columns: bool, drop the extra columns as described in the paper
+    :param drop_loosen: bool, drop the loosening parts of the screw motion
+    :return:
+    """
+    df = df.reset_index()
+    if drop_extra_columns:
+        df = df.drop(columns=['timestamp',
+                              'output_int_register_25',
+                              'output_int_register_26',
+                              'output_bit_register_64',
+                              'output_bit_register_65',
+                              'output_bit_register_66',
+                              'output_bit_register_67'], axis=1)
+    if drop_loosen:
+        df = df.loc[df['label'].isin([0, 1, 2, 3])]
+        df['sample_nr'] = (df['sample_nr'] != df['sample_nr'].shift(1)).astype(int).cumsum()
+
+    # Make it multiindex
+    df['event'] = df.index
+    df = df.set_index(['sample_nr', 'event'])
+    df = df.reset_index('event', drop=True)
+    df = df.set_index(df.groupby(level=0).cumcount().rename('event'), append=True)
+    df = df.sort_index()
+
+    return df
+
+
+def relabel(df):
+    """
+    Relabel the data to partial labeling, where loosening and tightening get different labels.
+
+    :param df: df, data
+    :return: df, relabeled data
+    """
+    df = df.reset_index()
+
+    df['label_shifted'] = df['label'].shift(-1)
+    df['label'] = np.where(df['label'] < df['label_shifted'],
+                           df['label_shifted'],
+                           df['label'])
+    df = df.drop(['label_shifted'], axis=1)
+
+    # Make it multiindex
+    df['event'] = df.index
+    df = df.set_index(['sample_nr', 'event'])
+    df = df.reset_index('event', drop=True)
+    df = df.set_index(df.groupby(level=0).cumcount().rename('event'), append=True)
+    df = df.sort_index()
+
+    return df
+
+
+def shuffle_dataframe(df):
+    """
+    Shuffle the dataframe
+
+    :param df: df, the data
+    :return: df, shuffled dataframe
+    """
+    new_order = list(range(df.index.get_level_values(0).max()))
+    new_order = [x + 1 for x in new_order]
+    random.shuffle(new_order)
+    newindex = sorted(df.index, key=lambda x: new_order.index(x[0]))
+    dataframe = df.reindex(newindex)
 
     return dataframe
 
 
-def pd_to_np(dataframe):
+def pd_to_np(df):
     """
     Transform pd dataset to np dataset
 
@@ -53,13 +106,13 @@ def pd_to_np(dataframe):
         data & labels
     """
     # Extract the labels and create a samples vector out of it
-    labels = dataframe.iloc[:, dataframe.columns.get_level_values(0) == 'label']
+    labels = df.iloc[:, df.columns.get_level_values(0) == 'label']
     labels = labels.droplevel('event')
     labels = labels[~labels.index.duplicated(keep='first')]
     labels_np = np.squeeze(labels.values)
 
     # Drop the labels from data
-    dataframe = dataframe.drop('label', axis=1)
+    dataframe = df.drop('label', axis=1)
 
     dim_0 = len(dataframe.index.get_level_values(0).unique())
     dim_1 = int(len(dataframe.index.get_level_values(1)) / dim_0)
@@ -87,8 +140,8 @@ def pad_df(df):
     arr = np.zeros((max_size * n_sample_nrs, len(df.columns)))
     idx_lv0 = df.index.get_level_values(0)  # get sample_nr
     for i in tqdm(range(n_sample_nrs), desc='Padding data'):
-        row = i*max_size
-        arr[row:row + sr_sizes.iloc[i], :] =\
+        row = i * max_size
+        arr[row:row + sr_sizes.iloc[i], :] = \
             df[idx_lv0 == sr_sizes.index[i]].values
 
     # 3. convert to dataframe
@@ -109,10 +162,7 @@ def subsample(df, freq=2):
     :param freq: int, every freq item will be taken
     :return: df, subsampled df
     """
-
-    groups = df.groupby('sample_nr').cumcount() % freq
-
-    df = df[groups == 1]
+    df = df.iloc[::freq, :]
 
     return df
 
@@ -154,3 +204,36 @@ def reduce_dimensions(df, dimensions=60, method='PCA'):
     df = df.set_index(df.groupby(level=0).cumcount().rename('event'), append=True)
 
     return df
+
+
+# TODO: WEll, do it
+def filter_samples(df, normal_samples, damaged_samples, assembly_samples, missing_samples):
+    """
+    Take the requested percentage of each data type
+
+    :param df: df, data
+    :param normal_samples: float, percentage of normal samples to take
+    :param damaged_samples: float, percentage of damaged samples to take
+    :param assembly_samples: float, percentage of assembly samples to take
+    :param missing_samples: float, percentage of missing samples to take
+    :return: df, the filtered data
+    """
+    # Count the sample types
+    count_df = df.groupby(['sample_nr'])['label'].median()
+    unique, counts = np.unique(count_df, return_counts=True)
+    labels_count_dict = {A: B for A, B in zip(unique, counts)}
+    print(labels_count_dict)
+
+
+    return df
+
+
+# TODO: Sliding window
+def create_sliding_window(data, window_size=200):
+    """
+    Prepare the data as sliding window
+
+    :param data:
+    :param window_size:
+    :return:
+    """
