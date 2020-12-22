@@ -131,6 +131,8 @@ def pad_df(df):
     """
     # 1. compute the sizes of each sample_nr
     sr_sizes = df.groupby(df.index.get_level_values(0)).size()
+    # Get the sample label
+    labels = df.groupby(df.index.get_level_values(0))['label'].mean()
     # compute max size and #sample_nr
     max_size = sr_sizes.max()
     n_sample_nrs = len(sr_sizes)
@@ -140,8 +142,8 @@ def pad_df(df):
     idx_lv0 = df.index.get_level_values(0)  # get sample_nr
     for i in tqdm(range(n_sample_nrs), desc='Padding data'):
         row = i * max_size
-        arr[row:row + sr_sizes.iloc[i], :] = \
-            df[idx_lv0 == sr_sizes.index[i]].values
+        arr[row:row + sr_sizes.iloc[i], :] = df[idx_lv0 == sr_sizes.index[i]].values
+        arr[row:row + max_size, -1] = labels[i+1]
 
     # 3. convert to dataframe
     df_ans = pd.DataFrame(
@@ -223,7 +225,6 @@ def filter_samples(df, normal_samples, damaged_samples, assembly_samples, missin
     count_df = df.groupby(['sample_nr'])['label'].median()
     unique, counts = np.unique(count_df, return_counts=True)
     labels_count_dict = {A: B for A, B in zip(unique, counts)}
-    print(labels_count_dict)
 
     # Take only the amount of samples that's needed to fill the requirement
     sampled_list = []
@@ -248,7 +249,15 @@ def filter_samples(df, normal_samples, damaged_samples, assembly_samples, missin
         sampled_list.append(sampled_df)
 
     taken_data = pd.concat(sampled_list, ignore_index=False).sort_values(['sample_nr', 'event'])
-    # TODO: Recalculate the index after sampling
+
+    # Reset the sample numbers
+    taken_data = taken_data.reset_index()
+    taken_data['sample_nr'] = (taken_data['sample_nr'] != taken_data['sample_nr'].shift(1)).astype(int).cumsum()
+    taken_data['event'] = taken_data.index
+    taken_data = taken_data.set_index(['sample_nr', 'event'])
+    taken_data = taken_data.reset_index('event', drop=True)
+    taken_data = taken_data.set_index(taken_data.groupby(level=0).cumcount().rename('event'), append=True)
+    taken_data = taken_data.sort_index()
 
     return taken_data
 
@@ -262,3 +271,31 @@ def create_sliding_window(data, window_size=200):
     :param window_size:
     :return:
     """
+
+
+def print_info(df):
+    """
+    Print the info about the collected datset.
+
+    :param df: df, the data
+    :return:
+    """
+
+    # Data statistics
+    # Number of total samples
+    print('There are {n_samples} samples in total.'.format(n_samples=len(list(df.index.get_level_values(0).unique()))))
+
+    # Count the different types of labels
+    unique = df['label'].unique()
+    count = []
+
+    for label in unique:
+        count.append(len(df.index.get_level_values(0)[df['label'] == label].unique()))
+
+    count_dict = {unique[i]: count[i] for i in range(len(unique))}
+    count_dict_percentage = {unique[i]: np.round(count[i] / len(list(df.index.get_level_values(0).unique())), decimals=2)
+                             for i in range(len(unique))}
+
+    print('The types and counts of different labels : \n {count_dict}'.format(count_dict=count_dict))
+    print('The types and counts of different labels as percentage of the total data'
+          ' : \n {count_dict}'.format(count_dict=count_dict_percentage))
