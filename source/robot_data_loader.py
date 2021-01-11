@@ -1,25 +1,11 @@
-import sys
-import requests
-import numpy as np
+__doc__ = "Data loader for the UR robot dataset"
+__author__ = "Błażej Leporowski"
+__version__ = "Version 0.1 # 11/01/2021 # Initial release #"
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 
 from source.utils import load_dataset, reduce_dimensions, subsample, pad_df, pd_to_np, filter_samples, relabel, drop_columns, print_info
-
-sys.path.append("../")
-
-
-def download_dataset(foldername, url='https://1drv.ms/u/s!AnZHRsLIVJOxlYU_8YgZlFK0MgXzjA?e=8OZ6bS'):
-    """
-    Download the dataset.
-
-    :param url: string, the url from which the data is downloaded
-    :param foldername: folder path, folder to which the data will be downloaded to
-    :return:
-    """
-    r = requests.get(url, allow_redirects=True)
-    open(foldername + 'robot_dataset.h5').write(r.content)
 
 
 def get_dataset_numpy(path, onehot_labels=True, sliding_window=False, window_size=200,
@@ -55,15 +41,13 @@ def get_dataset_numpy(path, onehot_labels=True, sliding_window=False, window_siz
     """
     data = load_dataset(path=path)
 
-    print_info(data)
-
     if label_full:
         drop_loosen = False
         data = relabel(data)
 
     data = drop_columns(data, drop_extra_columns=drop_extra_columns, drop_loosen=drop_loosen)
 
-    if normal_samples < 1 or damaged_samples < 1 or assembly_samples < 1 or missing_samples < 1:
+    if normal_samples < 1 or damaged_samples < 1 or assembly_samples < 1 or missing_samples < 1 or loosening_samples < 1:
         data = filter_samples(data, normal_samples, damaged_samples, assembly_samples, missing_samples,
                               damaged_thread_samples, loosening_samples)
 
@@ -98,6 +82,7 @@ def get_dataset_numpy(path, onehot_labels=True, sliding_window=False, window_siz
 
 
 if __name__ == '__main__':
+    # data_path = 'C:/Users/au614889/PycharmProjects/robot_dataset/created_dataset/download_test/'
     data_path = 'C:/Users/au614889/PycharmProjects/robot_dataset/created_dataset/robot_data.h5'
     train_x, train_y, test_x, test_y = get_dataset_numpy(data_path)
-    print(train_x.shape)
+    # download_dataset(data_path)
