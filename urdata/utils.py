@@ -346,6 +346,8 @@ def print_info(df):
     count_dict_percentage = {unique[i]: np.round(count[i] / len(list(df.index.get_level_values(0).unique())), decimals=2)
                              for i in range(len(unique))}
 
+    print('\n')
     print('The types and counts of different labels : \n {count_dict}'.format(count_dict=count_dict))
     print('The types and counts of different labels as percentage of the total data'
           ' : \n {count_dict}'.format(count_dict=count_dict_percentage))
+    print('\n')

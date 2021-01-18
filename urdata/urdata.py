@@ -11,8 +11,6 @@ from sklearn.preprocessing import OneHotEncoder
 from .utils import load_dataset, reduce_dimensions, subsample, pad_df, pd_to_np, filter_samples, relabel, drop_columns, \
     print_info, create_window_generator
 
-sys.path.append("../../")
-
 
 def get_dataset(path, onehot_labels=True, sliding_window=False, window_size=100,
                 reduce_dimensionality=False, reduce_method='PCA', n_dimensions=60, subsample_data=True,
@@ -48,6 +46,8 @@ def get_dataset(path, onehot_labels=True, sliding_window=False, window_size=100,
     :return: np arrays, train and test data & labels
     """
     data = load_dataset(path=path)
+
+    print('Loaded data')
 
     if label_full:
         drop_loosen = False
