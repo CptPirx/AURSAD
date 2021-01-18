@@ -46,11 +46,11 @@ python setup.py install --user
 
 The package presents to user a single method get_dataset_numpy(). Its parameters are:
 ```bash
-def get_dataset_numpy(path, onehot_labels=True, sliding_window=False, window_size=200,
-                      reduce_dimensionality=False, reduce_method='PCA', n_dimensions=60, subsample_data=True,
-                      subsample_freq=5, pad_data=True, train_size=0.7, random_state=42, normal_samples=1,
-                      damaged_samples=1, assembly_samples=1, missing_samples=1, damaged_thread_samples=0,
-                      loosening_samples=0, drop_loosen=True, drop_extra_columns=True, label_full=False):
+def get_dataset(path, onehot_labels=True, sliding_window=False, window_size=100,
+                reduce_dimensionality=False, reduce_method='PCA', n_dimensions=60, subsample_data=True,
+                subsample_freq=5, pad_data=True, train_size=0.7, random_state=42, normal_samples=1,
+                damaged_samples=1, assembly_samples=1, missing_samples=1, damaged_thread_samples=0,
+                loosening_samples=1, drop_loosen=True, drop_extra_columns=True, label_full=False, batch_size=256):
     """
     Create a numpy dataset from input dataframe
 
@@ -95,6 +95,9 @@ def get_dataset_numpy(path, onehot_labels=True, sliding_window=False, window_siz
         size of the sliding window
     :param onehot_labels: bool, 
         output onehot encoded labels
+    :param batch_size: int, 
+        batch size for the sliding window generator
+
     :return: np arrays, train and test data & labels
     """
 ```
