@@ -1,9 +1,11 @@
 from tqdm import tqdm
 from sklearn import decomposition
 import random
+import tqdm
 
 import pandas as pd
 import numpy as np
+import tensorflow.keras as k
 
 
 def load_dataset(path):
@@ -96,19 +98,23 @@ def shuffle_dataframe(df):
     return dataframe
 
 
-def pd_to_np(df):
+def pd_to_np(df, squeeze):
     """
     Transform pd dataset to np dataset
 
-    :param dataframe: pd dataframe
+    :param squeeze:
+    :param df: pd dataframe
     :return: np arrays,
         data & labels
     """
     # Extract the labels and create a samples vector out of it
     labels = df.iloc[:, df.columns.get_level_values(0) == 'label']
     labels = labels.droplevel('event')
-    labels = labels[~labels.index.duplicated(keep='first')]
-    labels_np = np.squeeze(labels.values)
+    if squeeze:
+        labels = labels[~labels.index.duplicated(keep='first')]
+        labels_np = np.squeeze(labels.values)
+    else:
+        labels_np = labels.values
 
     # Drop the labels from data
     dataframe = df.drop('label', axis=1)
@@ -140,7 +146,7 @@ def pad_df(df):
     # 2. preallocate the output array and fill
     arr = np.zeros((max_size * n_sample_nrs, len(df.columns)))
     idx_lv0 = df.index.get_level_values(0)  # get sample_nr
-    for i in tqdm(range(n_sample_nrs), desc='Padding data'):
+    for i in tqdm.tqdm(range(n_sample_nrs), desc='Padding data'):
         row = i * max_size
         arr[row:row + sr_sizes.iloc[i], :] = df[idx_lv0 == sr_sizes.index[i]].values
         arr[row:row + max_size, -1] = labels[i+1]
@@ -262,15 +268,59 @@ def filter_samples(df, normal_samples, damaged_samples, assembly_samples, missin
     return taken_data
 
 
-# TODO: Sliding window
-def create_sliding_window(data, window_size=200):
+def split_sequence(sequence, window, horizon):
     """
-    Prepare the data as sliding window
+    Split a univariate sequence into samples
 
-    :param data:
-    :param window_size:
+    :param sequence: array, continuous data
+    :param window: int, window size
+    :param horizon: int, prediction horizon
+    :return: x and y arrays
+    """
+    X, y = list(), list()
+    for i in range(len(sequence)):
+        # find the end of this pattern
+        end_ix = i + window
+        out_end_ix = end_ix + horizon
+        # check if we are beyond the sequence
+        if out_end_ix > len(sequence):
+            break
+        # gather input and output parts of the pattern
+        seq_x, seq_y = sequence[i:end_ix], sequence[end_ix:out_end_ix]
+        X.append(seq_x)
+        y.append(seq_y)
+    return np.array(X), np.array(y)
+
+
+def create_window_generator(window, batch_size, train_x, train_y, test_x, test_y):
+    """
+    Create a TF generator for sliding window
+
+    :param batch_size:
+    :param test_y:
+    :param test_x:
+    :param train_y:
+    :param train_x:
+    :param window:
     :return:
     """
+
+    # Shift the target samples by one step
+    train_y = np.insert(train_y, 0, 0)
+    test_y = np.insert(test_y, 0, 0)
+
+    train_y = k.utils.to_categorical(train_y[:-1], num_classes=len(np.unique(train_y)))
+    test_y = k.utils.to_categorical(test_y[:-1], num_classes=len(np.unique(test_y)))
+
+    train_generator = k.preprocessing.sequence.TimeseriesGenerator(train_x, train_y,
+                                                                   length=window,
+                                                                   batch_size=batch_size)
+
+    test_generator = k.preprocessing.sequence.TimeseriesGenerator(test_x, test_y,
+                                                                  length=window,
+                                                                  batch_size=batch_size)
+
+    return train_generator, test_generator
 
 
 def print_info(df):

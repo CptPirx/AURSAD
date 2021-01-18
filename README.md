@@ -1,4 +1,4 @@
-# UR-data
+# URdata
 A python library for the UR Screwdriver dataset as described in [link].
 
 The UR-data library contains several useful functionalities for preprocessing the dataset for ML applications:
@@ -33,7 +33,7 @@ UR-data has been tested on Windows 10 and Python 3.8.
 ### PIP installation
 To install from pip with required dependencies use:
 ```bash
-pip install ur-data
+pip install urdata
 ```
 ### Source installation
 To install latest version from github, clone the source from the project repository and install with setup.py:
