@@ -7,14 +7,14 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 
-from .utils import load_dataset, reduce_dimensions, subsample, pad_df, pd_to_np, filter_samples, relabel, drop_columns, \
-    print_info, create_window_generator
+from .utils import *
 
 
 def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, reduce_method='PCA', n_dimensions=60,
                       subsample_data=True, subsample_freq=2, train_size=0.7, random_state=42, normal_samples=1,
                       damaged_samples=1, assembly_samples=1, missing_samples=1, damaged_thread_samples=0,
-                      loosening_samples=1, drop_loosen=True, drop_extra_columns=True, label_full=False):
+                      loosening_samples=1, drop_loosen=True, drop_extra_columns=True, label_full=False,
+                      binary_labels=False, standardize=False):
     """
     Create numpy dataset from input h5 file
 
@@ -53,6 +53,10 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
         the target number of dimensions
     :param onehot_labels: bool,
         output onehot encoded labels
+    :param binary_labels: bool,
+        if True all anomalies are labeled the same
+    :param standardize: bool,
+        if True apply z-score standardisation
 
     :return: np arrays, train and test data & labels
     """
@@ -67,7 +71,6 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
     data = drop_columns(data, drop_extra_columns=drop_extra_columns, drop_loosen=drop_loosen)
 
     if subsample_data:
-        print('Subsampling data')
         data = subsample(data, subsample_freq)
 
     if normal_samples < 1 or damaged_samples < 1 or assembly_samples < 1 or missing_samples < 1 or damaged_thread_samples < 1 or loosening_samples < 1:
@@ -81,10 +84,12 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
         print('Reducing dimensionality')
         data = reduce_dimensions(data, method=reduce_method, dimensions=n_dimensions)
 
-    print('Padding data')
     data = pad_df(data)
 
     data, labels = pd_to_np(data, squeeze=True)
+
+    if binary_labels:
+        labels = binarize_labels(labels)
 
     # Split the data
     train_x, test_x, train_y, test_y = train_test_split(data,
@@ -92,6 +97,10 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
                                                         train_size=train_size,
                                                         random_state=random_state,
                                                         stratify=labels)
+
+    if standardize:
+        print('Standardizing data')
+        train_x, test_x = z_score_std(train_x, test_x)
 
     if onehot_labels:
         encoder = OneHotEncoder()
@@ -105,7 +114,7 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
                           subsample_data=True, subsample_freq=2, train_size=0.7, random_state=42, normal_samples=1,
                           damaged_samples=1, assembly_samples=1, missing_samples=1, damaged_thread_samples=0,
                           loosening_samples=1, drop_loosen=True, drop_extra_columns=True, label_full=False,
-                          batch_size=256):
+                          batch_size=256, binary_labels=False, standardize=False):
     """
     Create Keras sliding window generator from input h5 file
 
@@ -146,9 +155,13 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
         size of the sliding window
     :param batch_size: int,
         batch size for the sliding window generator
+    :param binary_labels: bool,
+        if True all anomalies are labeled the same
+    :param standardize: bool,
+        if True apply z-score standardisation
 
     :return: np arrays,
-        full continous data and labels
+        testing continous data and labels
     :return: keras TimeSeries generators,
         train and test generators
     """
@@ -163,8 +176,10 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
     data = drop_columns(data, drop_extra_columns=drop_extra_columns, drop_loosen=drop_loosen)
 
     if subsample_data:
-        print('Subsampling data')
         data = subsample(data, subsample_freq)
+
+    if binary_labels:
+        loosening_samples = 0
 
     if normal_samples < 1 or damaged_samples < 1 or assembly_samples < 1 or missing_samples < 1 or damaged_thread_samples < 1 or loosening_samples < 1:
         print('Filtering samples')
@@ -177,15 +192,12 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
         print('Reducing dimensionality')
         data = reduce_dimensions(data, method=reduce_method, dimensions=n_dimensions)
 
-    print('Padding data')
     data = pad_df(data)
 
     data, labels = pd_to_np(data, squeeze=False)
 
-    data = data.reshape(-1, n_dimensions)
-    added_rows = np.where(np.all(data == 0, axis=1))
-    data = data[~added_rows[0]]
-    labels = labels[~added_rows[0]]
+    if binary_labels:
+        labels = binarize_labels(labels)
 
     # Split the data
     train_x, test_x, train_y, test_y = train_test_split(data,
@@ -194,6 +206,13 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
                                                         random_state=random_state,
                                                         stratify=labels)
 
+    if standardize:
+        print('Standardizing data')
+        train_x, test_x = z_score_std(train_x, test_x)
+
+    train_x, train_y = delete_padded_rows(train_x, train_y, n_dimensions)
+    test_x, test_y = delete_padded_rows(test_x, test_y, n_dimensions)
+
     train_generator, test_generator = create_window_generator(train_x=train_x,
                                                               train_y=train_y,
                                                               test_x=test_x,
@@ -201,4 +220,4 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
                                                               window=window_size,
                                                               batch_size=batch_size)
 
-    return data, labels, train_generator, test_generator
+    return train_y, test_y, train_generator, test_generator
