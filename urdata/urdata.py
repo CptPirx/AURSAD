@@ -60,7 +60,8 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
     :param pad_data: bool,
         if True pad data to equal length samples, if False return data in continuous form
 
-    :return: 4 np arrays, train and test data & labels
+    :return: 4 np arrays,
+        train and test data & labels
     """
     data = load_dataset(path=path)
 
@@ -170,8 +171,8 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
     :param standardize: bool,
         if True apply z-score standardisation
 
-    :return: np arrays,
-        testing continous data and labels
+    :return: 4 np arrays,
+        train and test data & labels
     :return: keras TimeSeries generators,
         train and test generators
     """
@@ -234,4 +235,4 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
                                                               window=window_size,
                                                               batch_size=batch_size)
 
-    return train_y, test_y, train_generator, test_generator
+    return train_x, train_y, test_x, test_y, train_generator, test_generator

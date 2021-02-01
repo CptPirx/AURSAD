@@ -1,7 +1,7 @@
-# URdata 
-A python library for the UR Screwdriver dataset as described in [link].
+# AURSAD 
+A python library for the AURSAD dataset as described in [link].
 
-The UR-data library contains several useful functionalities for preprocessing the dataset for ML applications:
+The library contains several useful functionalities for preprocessing the dataset for ML applications:
 * Creating numpy training and test datasets for sampled data
 * Creating a [Keras TimeSeries generators](https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/sequence/TimeseriesGenerator) 
   for sliding window data
@@ -102,7 +102,8 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
     :param pad_data: bool,
         if True pad data to equal length samples, if False return data in continuous form
 
-    :return: 4 np arrays, train and test data & labels
+    :return: 4 np arrays, 
+        train and test data & labels
     """
 ```
 
@@ -171,8 +172,8 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
     :param standardize: bool,
         if True apply z-score standardisation
 
-    :return: np arrays,
-        testing continous data and labels
+    :return: 4 np arrays, 
+        train and test data & labels
     :return: keras TimeSeries generators,
         train and test generators
     """

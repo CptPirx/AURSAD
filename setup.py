@@ -4,11 +4,11 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="urdata",
-    version="0.1.7",
+    name="aursad",
+    version="0.1.0",
     author="Błażej Leporowski",
     author_email="bleporowski@outlook.com",
-    description="Accompanying library to UR screwdriver dataset",
+    description="Accompanying library to the AURSAD dataset",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/CptPirx/robo-package",
