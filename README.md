@@ -7,14 +7,16 @@ The UR-data library contains several useful functionalities for preprocessing th
   for sliding window data
 * Filtering the dataset
 * Removing undesired columns as outlined in the paper
-* 2 different types of labeling
+* 3 different types of labeling
     * Full sample labeling where loosening and tightening motions are labeled together
     * Separate sample labeling where loosening motion is given its own label
-* Dropping the loosening labels
+    * 'Tighten' sample labeling, when only the tihgtening parts of the whole process are labeled as normal/anomalies, 
+      loosening and movement parts of the motion get its own separate labels
 * Subsampling the data
-* Dimensionality reduction using PCA
+* Dimensionality reduction using PCA or ANOVA F-values
 * One-hot label encoding
 * Zero padding the samples to equalise their length
+* Z-score standardisation
 
 ### Dataset
 The dataset contains 2042 samples in total. The robot was sampled with frequency of 100 Hz, and the resulting dataset 
@@ -27,7 +29,7 @@ comes in a single hdf file of ~6 GB.
 | Extra assembly component | 2     | 183     | 9  |
 | Missing screw            | 3     | 218     | 11 |
 
-The dataset can be downloaded from here[link].
+The dataset can be downloaded from here [link].
 
 ## Installation
 UR-data has been tested on Windows 10 and Python 3.8.

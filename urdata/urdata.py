@@ -1,6 +1,6 @@
 __doc__ = "Data loader for the UR robot dataset"
 __author__ = "Błażej Leporowski"
-__version__ = "Version 0.1 # 11/01/2021 # Initial release #"
+__version__ = "Version 0.1 # 01/02/2021 # Initial release #"
 
 import numpy as np
 
@@ -13,18 +13,16 @@ from .utils import *
 def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, reduce_method='PCA', n_dimensions=60,
                       subsample_data=True, subsample_freq=2, train_size=0.7, random_state=42, normal_samples=1,
                       damaged_samples=1, assembly_samples=1, missing_samples=1, damaged_thread_samples=0,
-                      loosening_samples=1, drop_loosen=True, drop_extra_columns=True, label_full=False,
-                      binary_labels=False, standardize=False):
+                      loosening_samples=1, move_samples=1, drop_extra_columns=True, pad_data=True,
+                      label_type='partial', binary_labels=False, standardize=False):
     """
     Create numpy dataset from input h5 file
 
     :param path: path to the data
-    :param label_full: bool,
-        both loosening and tightening are part of one label
+    :param label_type: string,
+        'full', 'partial' or 'tighten'
     :param drop_extra_columns: bool,
         drop the extra columns as outlined in the paper
-    :param drop_loosen: bool,
-        drop the loosening columns
     :param missing_samples: float,
         percentage of missing samples to take
     :param assembly_samples: float,
@@ -35,6 +33,8 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
         percentage of normal samples to take
     :param loosening_samples: float,
         percentage of loosening samples to take
+    :param move_samples: float,
+        percentage of movement samples to take
     :param damaged_thread_samples: float,
         percentage of damaged thread samples to take
     :param random_state: int,
@@ -57,6 +57,8 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
         if True all anomalies are labeled the same
     :param standardize: bool,
         if True apply z-score standardisation
+    :param pad_data: bool,
+        if True pad data to equal length samples, if False return data in continuous form
 
     :return: np arrays, train and test data & labels
     """
@@ -64,25 +66,27 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
 
     print('Loaded data')
 
-    if label_full:
-        drop_loosen = False
-        data = relabel(data)
+    if label_type == 'tighten':
+        print('Relabeling data')
+        data = relabel_tighten(data)
 
-    data = drop_columns(data, drop_extra_columns=drop_extra_columns, drop_loosen=drop_loosen)
+    if drop_extra_columns:
+        data = drop_columns(data)
 
     if subsample_data:
         data = subsample(data, subsample_freq)
 
-    if normal_samples < 1 or damaged_samples < 1 or assembly_samples < 1 or missing_samples < 1 or damaged_thread_samples < 1 or loosening_samples < 1:
+    if normal_samples < 1 or damaged_samples < 1 or assembly_samples < 1 or missing_samples < 1 or \
+            damaged_thread_samples < 1 or loosening_samples < 1 or move_samples < 1:
         print('Filtering samples')
         data = filter_samples(data, normal_samples, damaged_samples, assembly_samples, missing_samples,
-                              damaged_thread_samples, loosening_samples)
+                              damaged_thread_samples, loosening_samples, move_samples)
 
     print_info(data)
 
     if reduce_dimensionality:
         print('Reducing dimensionality')
-        data = reduce_dimensions(data, method=reduce_method, dimensions=n_dimensions)
+        data = reduce_dimensions(data, method=reduce_method, new_dimensions=n_dimensions)
 
     data = pad_df(data)
 
@@ -102,6 +106,10 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
         print('Standardizing data')
         train_x, test_x = z_score_std(train_x, test_x)
 
+    if not pad_data:
+        train_x, train_y = delete_padded_rows(train_x, train_y, data.shape[2])
+        test_x, test_y = delete_padded_rows(test_x, test_y, data.shape[2])
+
     if onehot_labels:
         encoder = OneHotEncoder()
         train_y = encoder.fit_transform(X=train_y.reshape(-1, 1)).toarray()
@@ -113,14 +121,16 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
 def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, reduce_method='PCA', n_dimensions=60,
                           subsample_data=True, subsample_freq=2, train_size=0.7, random_state=42, normal_samples=1,
                           damaged_samples=1, assembly_samples=1, missing_samples=1, damaged_thread_samples=0,
-                          loosening_samples=1, drop_loosen=True, drop_extra_columns=True, label_full=False,
-                          batch_size=256, binary_labels=False, standardize=False):
+                          loosening_samples=1, drop_loosen=True, drop_movement=False, drop_extra_columns=True,
+                          label_type='partial', batch_size=256, binary_labels=False, standardize=False):
     """
     Create Keras sliding window generator from input h5 file
 
+    :param drop_movement: bool,
+        drop the the movement samples
     :param path: path to the data
-    :param label_full: bool,
-        both loosening and tightening are part of one label
+    :param label_type: string,
+        'full', 'partial' or 'tighten'
     :param drop_extra_columns: bool,
         drop the extra columns as outlined in the paper
     :param drop_loosen: bool,
@@ -169,11 +179,15 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
 
     print('Loaded data')
 
-    if label_full:
+    if label_type == 'partial':
         drop_loosen = False
-        data = relabel(data)
+        data = relabel_partial(data)
+    elif label_type == 'tighten':
+        drop_loosen = False
+        data = relabel_tighten(data)
 
-    data = drop_columns(data, drop_extra_columns=drop_extra_columns, drop_loosen=drop_loosen)
+    if drop_extra_columns or drop_loosen or drop_movement:
+        data = drop_columns(data)
 
     if subsample_data:
         data = subsample(data, subsample_freq)
@@ -190,7 +204,7 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
 
     if reduce_dimensionality:
         print('Reducing dimensionality')
-        data = reduce_dimensions(data, method=reduce_method, dimensions=n_dimensions)
+        data = reduce_dimensions(data, method=reduce_method, new_dimensions=n_dimensions)
 
     data = pad_df(data)
 
@@ -210,8 +224,8 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
         print('Standardizing data')
         train_x, test_x = z_score_std(train_x, test_x)
 
-    train_x, train_y = delete_padded_rows(train_x, train_y, n_dimensions)
-    test_x, test_y = delete_padded_rows(test_x, test_y, n_dimensions)
+    train_x, train_y = delete_padded_rows(train_x, train_y, data.shape[2])
+    test_x, test_y = delete_padded_rows(test_x, test_y, data.shape[2])
 
     train_generator, test_generator = create_window_generator(train_x=train_x,
                                                               train_y=train_y,
