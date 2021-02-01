@@ -1,12 +1,11 @@
 import setuptools
-import urdata
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="urdata",
-    version="0.1",
+    version="0.1.7",
     author="Błażej Leporowski",
     author_email="bleporowski@outlook.com",
     description="Accompanying library to UR screwdriver dataset",

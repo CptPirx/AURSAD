@@ -60,7 +60,7 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
     :param pad_data: bool,
         if True pad data to equal length samples, if False return data in continuous form
 
-    :return: np arrays, train and test data & labels
+    :return: 4 np arrays, train and test data & labels
     """
     data = load_dataset(path=path)
 
