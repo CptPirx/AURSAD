@@ -1,5 +1,6 @@
 # AURSAD 
-A python library for the AURSAD dataset as described in [link].
+A python library for the AURSAD dataset. 
+Detailed [description]() of the dataset and [download](https://zenodo.org/record/4487073).
 
 The library contains several useful functionalities for preprocessing the dataset for ML applications:
 * Creating numpy training and test datasets for sampled data
@@ -185,5 +186,5 @@ import urdata
 
 data_path = 'C:/Users/my_path/robot_data.h5'
 
-data, labels, train_generator, test_generator = urdata.get_dataset_generator(data_path)
+train_x, train_y, test_x, test_y, train_generator, test_generator = urdata.get_dataset_generator(data_path)
 ```
