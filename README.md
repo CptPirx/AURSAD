@@ -1,6 +1,6 @@
 # AURSAD 
 A python library for the AURSAD dataset. 
-Detailed [description]() of the dataset and [download](https://zenodo.org/record/4487073).
+Detailed [description](https://arxiv.org/abs/2102.01409) of the dataset and [download](https://zenodo.org/record/4487073).
 
 The library contains several useful functionalities for preprocessing the dataset for ML applications:
 * Creating numpy training and test datasets for sampled data
@@ -11,7 +11,7 @@ The library contains several useful functionalities for preprocessing the datase
 * 3 different types of labeling
     * Full sample labeling where loosening and tightening motions are labeled together
     * Separate sample labeling where loosening motion is given its own label
-    * 'Tighten' sample labeling, when only the tihgtening parts of the whole process are labeled as normal/anomalies, 
+    * 'Tighten' sample labeling, when only the tightening parts of the whole process are labeled as normal/anomalies, 
       loosening and movement parts of the motion get its own separate labels
 * Subsampling the data
 * Dimensionality reduction using PCA or ANOVA F-values
@@ -20,8 +20,7 @@ The library contains several useful functionalities for preprocessing the datase
 * Z-score standardisation
 
 ### Dataset
-The dataset contains 2042 samples in total. The robot was sampled with frequency of 100 Hz, and the resulting dataset 
-comes in a single hdf file of ~6 GB.
+The dataset contains 2042 samples in total. The robot was sampled with frequency of 100 Hz.
 
 | Type                     | Label | Samples | %  |
 |--------------------------|-------|---------|----|
