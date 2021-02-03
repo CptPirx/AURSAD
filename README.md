@@ -32,12 +32,12 @@ The dataset contains 2042 samples in total. The robot was sampled with frequency
 The dataset can be downloaded from here [link].
 
 ## Installation
-UR-data has been tested on Windows 10 and Python 3.8.
+AURSAD has been tested on Windows 10 and Python 3.8.
 
 ### PIP installation
 To install from pip with required dependencies use:
 ```bash
-pip install urdata
+pip install aursad
 ```
 ### Source installation
 To install latest version from github, clone the source from the project repository and install with setup.py:
@@ -109,11 +109,11 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
 
 Sample usage:
 ```bash
-import urdata
+import aursad
 
 data_path = 'C:/Users/my_path/robot_data.h5'
 
-train_x, train_y, test_x, test_y = urdata.get_dataset_numpy(data_path)
+train_x, train_y, test_x, test_y = aursad.get_dataset_numpy(data_path)
 ```
 
 #### Sliding window
@@ -181,9 +181,9 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
 
 Sample usage:
 ```bash
-import urdata
+import aursad
 
 data_path = 'C:/Users/my_path/robot_data.h5'
 
-train_x, train_y, test_x, test_y, train_generator, test_generator = urdata.get_dataset_generator(data_path)
+train_x, train_y, test_x, test_y, train_generator, test_generator = aursad.get_dataset_generator(data_path)
 ```
