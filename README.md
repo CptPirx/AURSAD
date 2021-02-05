@@ -20,16 +20,17 @@ The library contains several useful functionalities for preprocessing the datase
 * Z-score standardisation
 
 ### Dataset
-The dataset contains 2042 samples in total. The robot was sampled with frequency of 100 Hz.
+The dataset contains 2045 samples in total. The robot was sampled with frequency of 100 Hz.
 
 | Type                     | Label | Samples | %  |
 |--------------------------|-------|---------|----|
-| Normal operation         | 0     | 1420    | 70 |
+| Normal operation         | 0     | 1420    | 69 |
 | Damaged screw            | 1     | 221     | 11 |
 | Extra assembly component | 2     | 183     | 9  |
 | Missing screw            | 3     | 218     | 11 |
+| Damaged thread samples   | 4     | 3       | 0  |
 
-The dataset can be downloaded from here [link].
+Additionally, there are 2049 supplementary samples describing the loosening/screw picking motion, labeled 5.
 
 ## Installation
 AURSAD has been tested on Windows 10 and Python 3.8.

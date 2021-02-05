@@ -67,15 +67,15 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
 
     print('Loaded data')
 
+    if subsample_data:
+        data = subsample(data, subsample_freq)
+
     if label_type == 'tighten':
         print('Relabeling data')
         data = relabel_tighten(data)
 
     if drop_extra_columns:
         data = drop_columns(data)
-
-    if subsample_data:
-        data = subsample(data, subsample_freq)
 
     if normal_samples < 1 or damaged_samples < 1 or assembly_samples < 1 or missing_samples < 1 or \
             damaged_thread_samples < 1 or loosening_samples < 1 or move_samples < 1:
@@ -180,6 +180,9 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
 
     print('Loaded data')
 
+    if subsample_data:
+        data = subsample(data, subsample_freq)
+
     if label_type == 'partial':
         drop_loosen = False
         data = relabel_partial(data)
@@ -189,9 +192,6 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
 
     if drop_extra_columns or drop_loosen or drop_movement:
         data = drop_columns(data)
-
-    if subsample_data:
-        data = subsample(data, subsample_freq)
 
     if binary_labels:
         loosening_samples = 0
