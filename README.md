@@ -18,6 +18,7 @@ The library contains several useful functionalities for preprocessing the datase
 * One-hot label encoding
 * Zero padding the samples to equalise their length
 * Z-score standardisation
+* Taking data only from screwdriver sensors
 
 ### Dataset
 The dataset contains 2045 samples in total. The robot was sampled with frequency of 100 Hz.
@@ -57,7 +58,7 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
                       subsample_data=True, subsample_freq=2, train_size=0.7, random_state=42, normal_samples=1,
                       damaged_samples=1, assembly_samples=1, missing_samples=1, damaged_thread_samples=0,
                       loosening_samples=1, move_samples=1, drop_extra_columns=True, pad_data=True,
-                      label_type='partial', binary_labels=False, standardize=False):
+                      label_type='partial', binary_labels=False, standardize=False, screwdriver_only = False):
     """
     Create numpy dataset from input h5 file
 
@@ -102,8 +103,10 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
         if True apply z-score standardisation
     :param pad_data: bool,
         if True pad data to equal length samples, if False return data in continuous form
+    :param screwdriver_only: bool,
+        take only the 4 dimensions from the screwdriver sensors
 
-    :return: 4 np arrays, 
+    :return: 4 np arrays,
         train and test data & labels
     """
 ```
@@ -125,7 +128,8 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
                           subsample_data=True, subsample_freq=2, train_size=0.7, random_state=42, normal_samples=1,
                           damaged_samples=1, assembly_samples=1, missing_samples=1, damaged_thread_samples=0,
                           loosening_samples=1, drop_loosen=True, drop_movement=False, drop_extra_columns=True,
-                          label_type='partial', batch_size=256, binary_labels=False, standardize=False):
+                          label_type='partial', batch_size=256, binary_labels=False, standardize=False,
+                          screwdriver_only=False):
     """
     Create Keras sliding window generator from input h5 file
 
@@ -172,8 +176,10 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
         if True all anomalies are labeled the same
     :param standardize: bool,
         if True apply z-score standardisation
+    :param screwdriver_only: bool,
+        take only the 4 dimensions from the screwdriver sensors
 
-    :return: 4 np arrays, 
+    :return: 4 np arrays,
         train and test data & labels
     :return: keras TimeSeries generators,
         train and test generators

@@ -386,6 +386,27 @@ def relabel_tighten(df):
     return new_df
 
 
+def screwdriver_data(df):
+    """
+    Take only the screwdriver data columns
+
+    :param df: df, the data
+    :return: df, screwdriver data
+    """
+    print('Only screwdriver data taken')
+
+    screwdriver_df = df[['output_double_register_24',
+                         'output_double_register_25',
+                         'output_double_register_26',
+                         'output_double_register_27',
+                         'output_bit_register_70',
+                         'output_bit_register_71',
+                         'output_bit_register_72',
+                         'label']]
+
+    return screwdriver_df
+
+
 def shuffle_dataframe(df):
     """
     Shuffle the dataframe
