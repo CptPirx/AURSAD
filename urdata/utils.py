@@ -276,9 +276,10 @@ def reduce_dimensions(df, new_dimensions=60, method='PCA'):
         the target dimensionality
     :return:
     """
-    # Copy the labels, sample_nr and event
-    n_dimensions = df.shape[2]
-    n_events = df.shape[1]
+    # Get the dimensions
+    n_samples = len(df.index.get_level_values(0).unique())
+    n_events = int(len(df.index.get_level_values(1)) / n_samples)
+    n_dimensions = df.shape[1]
 
     df = df.reset_index()
     labels = df[['label', 'sample_nr', 'event']]
