@@ -2,8 +2,6 @@ __doc__ = "Data loader for the UR robot dataset"
 __author__ = "Błażej Leporowski"
 __version__ = "Version 0.1 # 01/02/2021 # Initial release #"
 
-import numpy as np
-
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 

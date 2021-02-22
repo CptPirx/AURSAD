@@ -5,8 +5,6 @@ import pandas as pd
 import random
 import tensorflow.keras as k
 
-import tqdm
-
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import SelectKBest
 
@@ -192,7 +190,7 @@ def pad_df(df):
     # 2. preallocate the output array and fill
     arr = np.zeros((max_size * n_sample_nrs, len(df.columns)))
     idx_lv0 = df.index.get_level_values(0)  # get sample_nr
-    for i in tqdm.tqdm(range(n_sample_nrs), desc='Padding data'):
+    for i in tqdm(range(n_sample_nrs), desc='Padding data'):
         row = i * max_size
         arr[row:row + sr_sizes.iloc[i], :] = df[idx_lv0 == sr_sizes.index[i]].values
         arr[row:row + max_size, -1] = labels[i + 1]

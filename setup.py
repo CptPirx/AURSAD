@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="aursad",
-    version="0.1.5",
+    version="0.1.7",
     author="Błażej Leporowski",
     author_email="bleporowski@outlook.com",
     description="Accompanying library to the AURSAD dataset",
@@ -19,4 +19,12 @@ setuptools.setup(
         "Operating System :: Microsoft :: Windows :: Windows 10",
     ],
     python_requires='>=3.6',
+    install_requires=[
+        'tqdm',
+        'sklearn',
+        'numpy',
+        'pandas',
+        'random',
+        'tensorflow'
+    ]
 )
