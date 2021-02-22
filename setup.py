@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="aursad",
-    version="0.1.7",
+    version="0.1.9",
     author="Błażej Leporowski",
     author_email="bleporowski@outlook.com",
     description="Accompanying library to the AURSAD dataset",
@@ -24,7 +24,6 @@ setuptools.setup(
         'sklearn',
         'numpy',
         'pandas',
-        'random',
         'tensorflow'
     ]
 )

@@ -15,7 +15,7 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
                       subsample_data=True, subsample_freq=2, train_size=0.7, random_state=42, normal_samples=1,
                       damaged_samples=1, assembly_samples=1, missing_samples=1, damaged_thread_samples=0,
                       loosening_samples=1, move_samples=1, drop_extra_columns=True, pad_data=True,
-                      label_type='partial', binary_labels=False, standardize=False, screwdriver_only = False):
+                      label_type='partial', binary_labels=False, standardize=False, screwdriver_only=False):
     """
     Create numpy dataset from input h5 file
 
