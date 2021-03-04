@@ -3,6 +3,7 @@ from tqdm import tqdm
 import numpy as np
 import pandas as pd
 import random
+import sys
 import tensorflow.keras as k
 
 from sklearn.preprocessing import StandardScaler
@@ -161,7 +162,13 @@ def load_dataset(path):
     :param: path: path to the data
     :return: pd dataframes, train & test data
     """
-    dataframe = pd.read_hdf(path)
+    if '.h5' in path:
+        dataframe = pd.read_hdf(path)
+    elif '.pkl' in path:
+        dataframe = pd.read_pickle(path)
+    else:
+        print('Wrong file')
+        sys.exit()
 
     # Make it multiindex
     dataframe['event'] = dataframe.index
