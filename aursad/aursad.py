@@ -128,9 +128,9 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
 def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, reduce_method='PCA', n_dimensions=60,
                           subsample_data=True, subsample_freq=2, train_size=0.7, random_state=42, normal_samples=1,
                           damaged_samples=1, assembly_samples=1, missing_samples=1, damaged_thread_samples=0,
-                          loosening_samples=1, drop_loosen=True, drop_movement=False, drop_extra_columns=True,
-                          label_type='partial', batch_size=256, binary_labels=False, standardize=False,
-                          screwdriver_only=False):
+                          loosening_samples=1, move_samples=1, drop_loosen=True, drop_movement=False,
+                          drop_extra_columns=True, label_type='partial', batch_size=256, binary_labels=False,
+                          standardize=False, screwdriver_only=False):
     """
     Create Keras sliding window generator from input h5 file
 
@@ -153,6 +153,8 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
         percentage of normal samples to take
     :param loosening_samples: float,
         percentage of loosening samples to take
+    :param move_samples: float,
+        percentage of movement samples to take
     :param damaged_thread_samples: float,
         percentage of damaged thread samples to take
     :param random_state: int,
@@ -209,7 +211,7 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
     if normal_samples < 1 or damaged_samples < 1 or assembly_samples < 1 or missing_samples < 1 or damaged_thread_samples < 1 or loosening_samples < 1:
         print('Filtering samples')
         data = filter_samples(data, normal_samples, damaged_samples, assembly_samples, missing_samples,
-                              damaged_thread_samples, loosening_samples)
+                              damaged_thread_samples, loosening_samples, move_samples)
 
     print_info(data)
 
