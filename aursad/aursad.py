@@ -197,18 +197,15 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
     if subsample_data:
         data = subsample(data, subsample_freq)
 
-    if label_type == 'partial':
-        data = relabel_partial(data)
-    elif label_type == 'tighten':
+    if label_type == 'tighten':
+        print('Relabeling data')
         data = relabel_tighten(data)
 
     if drop_extra_columns and not screwdriver_only:
         data = drop_columns(data)
 
-    if binary_labels:
-        loosening_samples = 0
-
-    if normal_samples < 1 or damaged_samples < 1 or assembly_samples < 1 or missing_samples < 1 or damaged_thread_samples < 1 or loosening_samples < 1:
+    if normal_samples < 1 or damaged_samples < 1 or assembly_samples < 1 or missing_samples < 1 or \
+            damaged_thread_samples < 1 or loosening_samples < 1 or move_samples < 1:
         print('Filtering samples')
         data = filter_samples(data, normal_samples, damaged_samples, assembly_samples, missing_samples,
                               damaged_thread_samples, loosening_samples, move_samples)
@@ -221,7 +218,7 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
 
     data = pad_df(data)
 
-    data, labels = pd_to_np(data, squeeze=False)
+    data, labels = pd_to_np(data, squeeze=True)
 
     if binary_labels:
         labels = binarize_labels(labels)
