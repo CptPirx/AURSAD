@@ -162,9 +162,9 @@ def load_dataset(path):
     :param: path: path to the data
     :return: pd dataframes, train & test data
     """
-    if '.h5' in path:
+    if '.h5' in str(path):
         dataframe = pd.read_hdf(path)
-    elif '.pkl' in path:
+    elif '.pkl' in str(path):
         dataframe = pd.read_pickle(path)
     else:
         print('Wrong file')
