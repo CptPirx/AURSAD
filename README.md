@@ -13,6 +13,7 @@ The library contains several useful functionalities for preprocessing the datase
     * Separate sample labeling where loosening motion is given its own label
     * 'Tighten' sample labeling, when only the tightening parts of the whole process are labeled as normal/anomalies, 
       loosening and movement parts of the motion get its own separate labels
+* Binary labels -> every anomaly is given the same label
 * Subsampling the data
 * Dimensionality reduction using PCA or ANOVA F-values
 * One-hot label encoding
@@ -58,7 +59,7 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
                       subsample_data=True, subsample_freq=2, train_size=0.7, random_state=42, normal_samples=1,
                       damaged_samples=1, assembly_samples=1, missing_samples=1, damaged_thread_samples=0,
                       loosening_samples=1, move_samples=1, drop_extra_columns=True, pad_data=True,
-                      label_type='partial', binary_labels=False, standardize=False, screwdriver_only = False):
+                      label_type='partial', binary_labels=False, standardize=False, screwdriver_only=False):
     """
     Create numpy dataset from input h5 file
 
@@ -108,7 +109,6 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
 
     :return: 4 np arrays,
         train and test data & labels
-    """
 ```
 
 Sample usage:
@@ -127,9 +127,9 @@ train_x, train_y, test_x, test_y = aursad.get_dataset_numpy(data_path)
 def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, reduce_method='PCA', n_dimensions=60,
                           subsample_data=True, subsample_freq=2, train_size=0.7, random_state=42, normal_samples=1,
                           damaged_samples=1, assembly_samples=1, missing_samples=1, damaged_thread_samples=0,
-                          loosening_samples=1, drop_loosen=True, drop_movement=False, drop_extra_columns=True,
-                          label_type='partial', batch_size=256, binary_labels=False, standardize=False,
-                          screwdriver_only=False):
+                          loosening_samples=1, move_samples=1, drop_loosen=True, drop_movement=False,
+                          drop_extra_columns=True, label_type='partial', batch_size=256, binary_labels=False,
+                          standardize=False, screwdriver_only=False):
     """
     Create Keras sliding window generator from input h5 file
 
@@ -152,6 +152,8 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
         percentage of normal samples to take
     :param loosening_samples: float,
         percentage of loosening samples to take
+    :param move_samples: float,
+        percentage of movement samples to take
     :param damaged_thread_samples: float,
         percentage of damaged thread samples to take
     :param random_state: int,
@@ -183,7 +185,6 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
         train and test data & labels
     :return: keras TimeSeries generators,
         train and test generators
-    """
   ```
 
 Sample usage:
