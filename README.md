@@ -4,7 +4,7 @@ Detailed [description](https://arxiv.org/abs/2102.01409) of the dataset and [dow
 
 The library contains several useful functionalities for preprocessing the dataset for ML applications:
 * Creating numpy training and test datasets for sampled data
-* Creating a [Keras TimeSeries generators](https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/sequence/TimeseriesGenerator) 
+* Creating [Keras TimeSeries generators](https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/sequence/TimeseriesGenerator) 
   for sliding window data
 * Filtering the dataset
 * Removing undesired columns as outlined in the paper
