@@ -109,6 +109,7 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
 
     :return: 4 np arrays,
         train and test data & labels
+    """
 ```
 
 Sample usage:
@@ -127,21 +128,19 @@ train_x, train_y, test_x, test_y = aursad.get_dataset_numpy(data_path)
 def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, reduce_method='PCA', n_dimensions=60,
                           subsample_data=True, subsample_freq=2, train_size=0.7, random_state=42, normal_samples=1,
                           damaged_samples=1, assembly_samples=1, missing_samples=1, damaged_thread_samples=0,
-                          loosening_samples=1, move_samples=1, drop_loosen=True, drop_movement=False,
-                          drop_extra_columns=True, label_type='partial', batch_size=256, binary_labels=False,
-                          standardize=False, screwdriver_only=False):
+                          loosening_samples=1, move_samples=1,drop_extra_columns=True, label_type='partial',
+                          batch_size=256, binary_labels=False, standardize=False, screwdriver_only=False,
+                          onehot_labels=True):
     """
     Create Keras sliding window generator from input h5 file
 
-    :param drop_movement: bool,
-        drop the the movement samples
+    :param onehot_labels: bool,
+        output onehot encoded labels
     :param path: path to the data
     :param label_type: string,
         'full', 'partial' or 'tighten'
     :param drop_extra_columns: bool,
         drop the extra columns as outlined in the paper
-    :param drop_loosen: bool,
-        drop the loosening columns
     :param missing_samples: float,
         percentage of missing samples to take
     :param assembly_samples: float,
@@ -185,6 +184,7 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
         train and test data & labels
     :return: keras TimeSeries generators,
         train and test generators
+    """
   ```
 
 Sample usage:
