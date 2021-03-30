@@ -1,7 +1,8 @@
 __author__ = "Błażej Leporowski"
 __doc__ = "Data loader for the UR robot dataset"
 __version__ = "Version 0.1 # 01/02/2021 # Initial release #"
-__version__ = "Version 0.1.12 # 15/03/2021 # Added onehot_labels to generators #"
+__version__ = "Version 0.1.13 # 15/03/2021 # Added onehot_labels to generators #"
+__version__ = "Version 0.1.14 # 30/03/2021 # Fixed bug with screwdriver only data and wrong dimensionality #"
 
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
@@ -97,7 +98,7 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
 
     print_info(data)
 
-    if reduce_dimensionality:
+    if reduce_dimensionality and not screwdriver_only:
         print('Reducing dimensionality')
         data = reduce_dimensions(data, method=reduce_method, new_dimensions=n_dimensions)
 
@@ -217,7 +218,7 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
 
     print_info(data)
 
-    if reduce_dimensionality:
+    if reduce_dimensionality and not screwdriver_only:
         print('Reducing dimensionality')
         data = reduce_dimensions(data, method=reduce_method, new_dimensions=n_dimensions)
 
