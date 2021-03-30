@@ -133,10 +133,16 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
         out_train_y = train_y
         out_test_y = test_y
 
+        # Shift the target samples by one step
+        train_y = np.insert(train_y[:-1], 0, 0)
+        test_y = np.insert(test_y[:-1], 0, 0)
+
     if onehot_labels:
         encoder = OneHotEncoder()
         train_y = encoder.fit_transform(X=train_y.reshape(-1, 1)).toarray()
         test_y = encoder.fit_transform(X=test_y.reshape(-1, 1)).toarray()
+        out_train_y = encoder.fit_transform(X=out_train_y.reshape(-1, 1)).toarray()
+        out_test_y = encoder.fit_transform(X=out_test_y.reshape(-1, 1)).toarray()
 
     train_generator, test_generator = create_window_generator(train_x=train_x,
                                                               train_y=train_y,

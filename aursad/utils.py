@@ -35,11 +35,6 @@ def create_window_generator(window, batch_size, train_x, train_y, test_x, test_y
     :param prediction_mode:
     :return:
     """
-    if not prediction_mode:
-        # Shift the target samples by one step
-        train_y = np.insert(train_y[:-1], 0, 0)
-        test_y = np.insert(test_y[:-1], 0, 0)
-
     train_generator = k.preprocessing.sequence.TimeseriesGenerator(train_x, train_y,
                                                                    length=window,
                                                                    batch_size=batch_size)
