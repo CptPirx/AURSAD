@@ -34,14 +34,6 @@ def create_window_generator(window, batch_size, train_x, train_y, test_x, test_y
     :param window:
     :return:
     """
-
-    # Shift the target samples by one step
-    train_y = np.insert(train_y, 0, 0)
-    test_y = np.insert(test_y, 0, 0)
-
-    train_y = k.utils.to_categorical(train_y[:-1], num_classes=len(np.unique(train_y)))
-    test_y = k.utils.to_categorical(test_y[:-1], num_classes=len(np.unique(test_y)))
-
     train_generator = k.preprocessing.sequence.TimeseriesGenerator(train_x, train_y,
                                                                    length=window,
                                                                    batch_size=batch_size)

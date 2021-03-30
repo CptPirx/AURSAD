@@ -1,4 +1,22 @@
 # AURSAD 
+<div align="left">
+
+[comment]: <> (  <a href='https://ride.readthedocs.io/en/latest/?badge=latest'>)
+
+[comment]: <> (      <img src='https://readthedocs.org/projects/ride/badge/?version=latest' alt='Documentation Status' height="20"/>)
+
+[comment]: <> (  </a>)
+
+[comment]: <> (  <a href="https://codecov.io/gh/LukasHedegaard/ride">)
+
+[comment]: <> (    <img src="https://codecov.io/gh/LukasHedegaard/ride/branch/main/graph/badge.svg?token=SJ59JOWNAC" height="20"/>)
+
+[comment]: <> (  </a>)
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" height="20">
+  </a>
+</div>
+
 A python library for the AURSAD dataset. 
 Detailed [description](https://arxiv.org/abs/2102.01409) of the dataset and [download](https://zenodo.org/record/4487073).
 
@@ -6,6 +24,7 @@ The library contains several useful functionalities for preprocessing the datase
 * Creating numpy training and test datasets for sampled data
 * Creating [Keras TimeSeries generators](https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/sequence/TimeseriesGenerator) 
   for sliding window data
+  * Prediction and classification mode
 * Filtering the dataset
 * Removing undesired columns as outlined in the paper
 * 3 different types of labeling
