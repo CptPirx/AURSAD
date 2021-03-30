@@ -22,7 +22,7 @@ def binarize_labels(labels):
     return labels
 
 
-def create_window_generator(window, batch_size, train_x, train_y, test_x, test_y):
+def create_window_generator(window, batch_size, train_x, train_y, test_x, test_y, prediction_mode):
     """
     Create a TF generator for sliding window
 
@@ -32,8 +32,14 @@ def create_window_generator(window, batch_size, train_x, train_y, test_x, test_y
     :param train_y:
     :param train_x:
     :param window:
+    :param prediction_mode:
     :return:
     """
+    if not prediction_mode:
+        # Shift the target samples by one step
+        train_y = np.insert(train_y[:-1], 0, 0)
+        test_y = np.insert(test_y[:-1], 0, 0)
+
     train_generator = k.preprocessing.sequence.TimeseriesGenerator(train_x, train_y,
                                                                    length=window,
                                                                    batch_size=batch_size)
