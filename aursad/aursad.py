@@ -140,10 +140,13 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
 
     if prediction_mode:
         # Shift the target samples by one step
-        train_y = np.insert(train_y[:-1], 0, 0)
-        test_y = np.insert(test_y[:-1], 0, 0)
+        out_train_y = np.insert(train_y[:-1], 0, 0)
+        out_test_y = np.insert(test_y[:-1], 0, 0)
+    else:
+        out_train_y = train_y
+        out_test_y = test_y
 
-    return train_x, train_y, test_x, test_y, train_generator, test_generator
+    return train_x, out_train_y, test_x, out_test_y, train_generator, test_generator
 
 
 def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, reduce_method='PCA', n_dimensions=60,
