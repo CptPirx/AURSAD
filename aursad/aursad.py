@@ -125,6 +125,14 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
     train_x, train_y = delete_padded_rows(train_x, train_y, data.shape[2])
     test_x, test_y = delete_padded_rows(test_x, test_y, data.shape[2])
 
+    if prediction_mode:
+        # Shift the target samples by one step
+        out_train_y = np.insert(train_y[:-1], 0, 0)
+        out_test_y = np.insert(test_y[:-1], 0, 0)
+    else:
+        out_train_y = train_y
+        out_test_y = test_y
+
     if onehot_labels:
         encoder = OneHotEncoder()
         train_y = encoder.fit_transform(X=train_y.reshape(-1, 1)).toarray()
@@ -137,14 +145,6 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
                                                               window=window_size,
                                                               batch_size=batch_size,
                                                               prediction_mode=prediction_mode)
-
-    if prediction_mode:
-        # Shift the target samples by one step
-        out_train_y = np.insert(train_y[:-1], 0, 0)
-        out_test_y = np.insert(test_y[:-1], 0, 0)
-    else:
-        out_train_y = train_y
-        out_test_y = test_y
 
     return train_x, out_train_y, test_x, out_test_y, train_generator, test_generator
 
