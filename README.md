@@ -25,6 +25,9 @@ The library contains several useful functionalities for preprocessing the datase
 * Creating [Keras TimeSeries generators](https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/sequence/TimeseriesGenerator) 
   for sliding window data
   * Prediction and classification mode
+    * In the default prediction mode, the target label of  window is the label of the next sample. This can be
+      used to train a sliding window model that predicts the class of the next sample based on the window.
+    * In the classification mode, the target label of a window is the most common label in that window.  
 * Filtering the dataset
 * Removing undesired columns as outlined in the paper
 * 3 different types of labeling
@@ -79,52 +82,52 @@ def get_dataset_numpy(path, onehot_labels=True, reduce_dimensionality=False, red
                       damaged_samples=1, assembly_samples=1, missing_samples=1, damaged_thread_samples=0,
                       loosening_samples=1, move_samples=1, drop_extra_columns=True, pad_data=True,
                       label_type='partial', binary_labels=False, standardize=False, screwdriver_only=False):
-    """
-    Create numpy dataset from input h5 file
+"""
+    Create numpy dataset from input file
 
-    :param path: path to the data
-    :param label_type: string,
-        'full', 'partial' or 'tighten'
-    :param drop_extra_columns: bool,
-        drop the extra columns as outlined in the paper
-    :param missing_samples: float,
-        percentage of missing samples to take
     :param assembly_samples: float,
         percentage of extra assembly samples to take
+    :param binary_labels: bool,
+        if True all anomalies are labeled the same
     :param damaged_samples: float,
         percentage of damaged samples to take
-    :param normal_samples: float,
-        percentage of normal samples to take
-    :param loosening_samples: float,
-        percentage of loosening samples to take
-    :param move_samples: float,
-        percentage of movement samples to take
     :param damaged_thread_samples: float,
         percentage of damaged thread samples to take
+    :param drop_extra_columns: bool,
+        drop the extra columns as outlined in the paper
+    :param label_type: string,
+        'full', 'partial' or 'tighten'
+    :param loosening_samples: float,
+        percentage of loosening samples to take
+    :param missing_samples: float,
+        percentage of missing samples to take
+    :param move_samples: float,
+        percentage of movement samples to take
+    :param n_dimensions: int,
+        the target number of dimensions
+    :param normal_samples: float,
+        percentage of normal samples to take
+    :param onehot_labels: bool,
+        output onehot encoded labels
+    :param pad_data: bool,
+        if True pad data to equal length samples, if False return data in continuous form
+    :param path: path to the data
     :param random_state: int,
         random state for train_test split
-    :param train_size: float,
-        percentage of data as training data
-    :param subsample_freq: int,
-        the frequency of subsampling
-    :param subsample_data: bool,
-        reduce number of events by taking every subsample_freq event
     :param reduce_dimensionality: bool,
         reduce dimensionality of the dataset
     :param reduce_method: string,
         dimensionality reduction method to be used
-    :param n_dimensions: int,
-        the target number of dimensions
-    :param onehot_labels: bool,
-        output onehot encoded labels
-    :param binary_labels: bool,
-        if True all anomalies are labeled the same
-    :param standardize: bool,
-        if True apply z-score standardisation
-    :param pad_data: bool,
-        if True pad data to equal length samples, if False return data in continuous form
     :param screwdriver_only: bool,
         take only the 4 dimensions from the screwdriver sensors
+    :param standardize: bool,
+        if True apply z-score standardisation
+    :param subsample_data: bool,
+        reduce number of events by taking every subsample_freq event
+    :param subsample_freq: int,
+        the frequency of subsampling
+    :param train_size: float,
+        percentage of data as training data
 
     :return: 4 np arrays,
         train and test data & labels
@@ -151,53 +154,55 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
                           batch_size=256, binary_labels=False, standardize=False, screwdriver_only=False,
                           onehot_labels=True):
     """
-    Create Keras sliding window generator from input h5 file
+    Create Keras sliding window generator from input file
 
-    :param onehot_labels: bool,
-        output onehot encoded labels
-    :param path: path to the data
-    :param label_type: string,
-        'full', 'partial' or 'tighten'
-    :param drop_extra_columns: bool,
-        drop the extra columns as outlined in the paper
-    :param missing_samples: float,
-        percentage of missing samples to take
     :param assembly_samples: float,
         percentage of extra assembly samples to take
-    :param damaged_samples: float,
-        percentage of damaged samples to take
-    :param normal_samples: float,
-        percentage of normal samples to take
-    :param loosening_samples: float,
-        percentage of loosening samples to take
-    :param move_samples: float,
-        percentage of movement samples to take
-    :param damaged_thread_samples: float,
-        percentage of damaged thread samples to take
-    :param random_state: int,
-        random state for train_test split
-    :param train_size: float,
-        percentage of data as training data
-    :param subsample_freq: int,
-        the frequency of subsampling
-    :param subsample_data: bool,
-        reduce number of events by taking every subsample_freq event
-    :param reduce_dimensionality: bool,
-        reduce dimensionality of the dataset
-    :param reduce_method: string,
-        dimensionality reduction method to be used
-    :param n_dimensions: int,
-        the target number of dimensions
-    :param window_size: int,
-        size of the sliding window
     :param batch_size: int,
         batch size for the sliding window generator
     :param binary_labels: bool,
         if True all anomalies are labeled the same
-    :param standardize: bool,
-        if True apply z-score standardisation
+    :param damaged_samples: float,
+        percentage of damaged samples to take
+    :param damaged_thread_samples: float,
+        percentage of damaged thread samples to take
+    :param drop_extra_columns: bool,
+        drop the extra columns as outlined in the paper
+    :param label_type: string,
+        'full', 'partial' or 'tighten'
+    :param loosening_samples: float,
+        percentage of loosening samples to take
+    :param missing_samples: float,
+        percentage of missing samples to take
+    :param move_samples: float,
+        percentage of movement samples to take
+    :param n_dimensions: int,
+        the target number of dimensions
+    :param normal_samples: float,
+        percentage of normal samples to take
+    :param onehot_labels: bool,
+        output onehot encoded labels
+    :param path: path to the data
+    :param prediction_mode: bool,
+        if True the target of a window [x_0, x_100] is label of x_101, if False, the target is the most common label in [x_0, x_100]
+    :param random_state: int,
+        random state for train_test split
+    :param reduce_dimensionality: bool,
+        reduce dimensionality of the dataset
+    :param reduce_method: string,
+        dimensionality reduction method to be used
     :param screwdriver_only: bool,
         take only the 4 dimensions from the screwdriver sensors
+    :param standardize: bool,
+        if True apply z-score standardisation
+    :param subsample_data: bool,
+        reduce number of events by taking every subsample_freq event
+    :param subsample_freq: int,
+        the frequency of subsampling
+    :param train_size: float,
+        percentage of data as training data
+    :param window_size: int,
+        size of the sliding window
 
     :return: 4 np arrays,
         train and test data & labels

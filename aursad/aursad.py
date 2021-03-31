@@ -50,7 +50,7 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
         output onehot encoded labels
     :param path: path to the data
     :param prediction_mode: bool,
-        if True the targets are shifted, so sample x has label of sample x+1
+        if True the target of a window [x_0, x_100] is label of x_101, if False, the target is the most common label in [x_0, x_100]
     :param random_state: int,
         random state for train_test split
     :param reduce_dimensionality: bool,
@@ -126,16 +126,17 @@ def get_dataset_generator(path, window_size=100, reduce_dimensionality=False, re
     test_x, test_y = delete_padded_rows(test_x, test_y, data.shape[2])
 
     if prediction_mode:
-        # Shift the target samples by one step
+        # Shift the output target samples by one step, so they are in line with generator targets
         out_train_y = np.insert(train_y[:-1], 0, 0)
         out_test_y = np.insert(test_y[:-1], 0, 0)
     else:
         out_train_y = train_y
         out_test_y = test_y
 
-        # Shift the target samples by one step
-        train_y = np.insert(train_y[:-1], 0, 0)
-        test_y = np.insert(test_y[:-1], 0, 0)
+        # Create the new classification targets vector
+        print('Creating new targets')
+        train_y = create_new_targets(window_size, train_y)
+        test_y = create_new_targets(window_size, test_y)
 
     if onehot_labels:
         encoder = OneHotEncoder()

@@ -1,5 +1,3 @@
-from sklearn import decomposition
-from tqdm import tqdm
 import numpy as np
 import pandas as pd
 import random
@@ -8,6 +6,9 @@ import tensorflow.keras as k
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.feature_selection import SelectKBest
+from sklearn import decomposition
+from tqdm import tqdm
+from scipy.stats import mode
 
 
 def binarize_labels(labels):
@@ -44,6 +45,19 @@ def create_window_generator(window, batch_size, train_x, train_y, test_x, test_y
                                                                   batch_size=batch_size)
 
     return train_generator, test_generator
+
+
+def create_new_targets(window, data):
+    """
+    Create the new targets for window classification. The new label will be the most common one in the whole window.
+
+    :param window:
+    :param data:
+    :return:
+    """
+    new_data = np.apply_along_axis(lambda x: np.bincount(x).argmax(), axis=1, arr=(rolling_window(data.astype(int), 0, window)))
+
+    return new_data
 
 
 def delete_padded_rows(data, labels, n_dimensions):
@@ -383,6 +397,21 @@ def relabel_tighten(df):
     new_df = new_df.set_index(new_df.groupby(level=0).cumcount().rename('event'), append=True)
 
     return new_df
+
+
+def rolling_window(a, fillval, L):
+    """
+    Rolling window for 1D numpy array
+
+    :param a:
+    :param fillval:
+    :param L:
+    :return:
+    """
+    a_ext = np.concatenate((np.full(L-1, fillval), a))
+    n = a_ext.strides[0]
+    strided = np.lib.stride_tricks.as_strided
+    return strided(a_ext, shape=(a.shape[0], L), strides=(n, n))
 
 
 def screwdriver_data(df):
